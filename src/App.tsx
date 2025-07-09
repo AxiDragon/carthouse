@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import JustDrawing from "./JustDrawing/JustDrawing";
 
 function App() {
   return (
-    <div>yo</div>
+    <JustDrawing />
   )
 }
 
-export default App
+export default App;
