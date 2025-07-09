@@ -1,22 +1,15 @@
-import { PencilBrush, } from "fabric";
-import { useEffect, useRef } from "react";
-import ScalingCanvas, { type ScalingCanvasRef } from "../components/ScalingCanvas";
+import { Canvas, PencilBrush, } from "fabric";
+import ScalingCanvas from "../components/ScalingCanvas";
 
 function JustDrawing() {
-	const canvasRef = useRef<ScalingCanvasRef>(null);
-
-	useEffect(() => {
-		if (!canvasRef.current) return;
-
-		const canvas = canvasRef.current.getCanvas();
-
+	const init = (canvas: Canvas) => {
 		canvas.freeDrawingBrush = new PencilBrush(canvas);
 		canvas.freeDrawingBrush.width = 8;
 		canvas.freeDrawingBrush.color = 'black';
-	}, [canvasRef.current]);
+	}
 
 	return (
-		<ScalingCanvas ref={canvasRef} />
+		<ScalingCanvas init={init} />
 	)
 }
 

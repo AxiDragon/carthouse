@@ -1,13 +1,15 @@
 import { Canvas } from "fabric";
 import { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 
-type EmptyProps = {}
+type ScalingCanvasProps = {
+	init?: (canvas: Canvas) => void;
+}
 
 type ScalingCanvasRef = {
 	getCanvas: () => Canvas;
 }
 
-const ScalingCanvas = forwardRef<ScalingCanvasRef, EmptyProps>((_, ref) => {
+const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init }, ref) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const fabricCanvasRef = useRef<Canvas | null>(null);
 
@@ -26,6 +28,10 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, EmptyProps>((_, ref) => {
 
 		fabricCanvasRef.current.isDrawingMode = true;
 		fabricCanvasRef.current.selection = false;
+
+		if (init) {
+			init(fabricCanvasRef.current);
+		}
 
 		fabricCanvasRef.current.renderAll();
 
