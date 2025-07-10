@@ -9,6 +9,8 @@ type ScalingCanvasProps = {
 type ScalingCanvasRef = {
 	getCanvas: () => HTMLCanvasElement;
 	isDrawing: () => boolean;
+	addStroke: (points: Point[]) => void;
+	addPoint: (point: Point) => void;
 }
 
 export type Point = {
@@ -20,12 +22,15 @@ export type Point = {
 
 const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, drawMode = true, getPoint }, ref) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const ctxRef = useRef<CanvasRenderingContext2D>(null!);
 	const isDrawing = useRef<boolean>(false);
 	const strokes = useRef<Point[][]>([]);
 
 	useImperativeHandle(ref, () => ({
 		getCanvas: () => canvasRef.current!,
 		isDrawing: () => isDrawing.current,
+		addStroke,
+		addPoint
 	}), []);
 
 	const startStroke = () => {
@@ -38,33 +43,52 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 
 		strokes.current[strokes.current.length - 1].push(point);
 
-		render();
+		renderPoint();
+	}
+
+	//only render the last point, for performance
+	const renderPoint = () => {
+		if (!ctxRef.current) return;
+
+		const stroke = strokes.current[strokes.current.length - 1];
+		const n = stroke.length;
+
+		if (n < 2) return;
+
+		ctxRef.current.beginPath();
+		ctxRef.current.moveTo(stroke[n - 2].x, stroke[n - 2].y);
+		ctxRef.current.strokeStyle = stroke[n - 1].color!;
+		ctxRef.current.lineWidth = stroke[n - 1].width!;
+		ctxRef.current.lineTo(stroke[n - 1].x, stroke[n - 1].y);
+		ctxRef.current.stroke();
+	}
+
+	const renderStroke = (stroke: Point[]) => {
+		for (let i = 1; i < stroke.length; i++) {
+			ctxRef.current.beginPath();
+			ctxRef.current.moveTo(stroke[i - 1].x, stroke[i - 1].y);
+			ctxRef.current.strokeStyle = stroke[i].color!;
+			ctxRef.current.lineWidth = stroke[i].width!;
+			ctxRef.current.lineTo(stroke[i].x, stroke[i].y);
+			ctxRef.current.stroke();
+		}
 	}
 
 	const addStroke = (stroke: Point[]) => {
 		strokes.current.unshift(stroke); //unshift to avoid messing with the currently drawn stroke
+
+		renderStroke(stroke);
 	}
 
 	const render = () => {
-		if (!canvasRef.current) return;
+		if (!canvasRef.current || !ctxRef.current) return;
 
 		const canvas = canvasRef.current;
-		const ctx = canvas.getContext('2d');
-
-		if (!ctx) return;
-
-		ctx.fillStyle = 'white';
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctxRef.current.fillStyle = 'white';
+		ctxRef.current.fillRect(0, 0, canvas.width, canvas.height);
 
 		for (const stroke of strokes.current) {
-			for (let i = 1; i < stroke.length; i++) {
-				ctx.beginPath();
-				ctx.moveTo(stroke[i - 1].x, stroke[i - 1].y);
-				ctx.strokeStyle = stroke[i].color!;
-				ctx.lineWidth = stroke[i].width!;
-				ctx.lineTo(stroke[i].x, stroke[i].y);
-				ctx.stroke();
-			}
+			renderStroke(stroke);
 		}
 	}
 
@@ -72,11 +96,11 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 		if (!canvasRef.current) return;
 
 		const canvas = canvasRef.current;
-		const ctx = canvas.getContext('2d');
-		if (!ctx) return;
+		ctxRef.current = canvas.getContext('2d')!;
+		if (!ctxRef.current) return;
 
-		ctx.fillStyle = 'white';
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctxRef.current.fillStyle = 'white';
+		ctxRef.current.fillRect(0, 0, canvas.width, canvas.height);
 
 		const onMouseMove = (e: MouseEvent) => {
 			if (!isDrawing.current) return;
@@ -86,21 +110,27 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 
 		const onMouseUp = (e: MouseEvent) => {
 			isDrawing.current = false;
-			addPoint(getPoint?.(e) || { x: e.clientX, y: e.clientY });
+
+			if (drawMode) {
+				addPoint(getPoint?.(e) || { x: e.clientX, y: e.clientY });
+			}
 		};
 
 		const onMouseDown = () => {
 			isDrawing.current = true;
-			startStroke();
+
+			if (drawMode) {
+				startStroke();
+			}
 		};
 
 		if (drawMode) {
 			canvas.addEventListener('mousedown', onMouseDown);
 			canvas.addEventListener('mouseup', onMouseUp);
 			canvas.addEventListener('mousemove', onMouseMove);
-			ctx.lineWidth = 8;
-			ctx.strokeStyle = 'black';
-			ctx.lineCap = 'round';
+			ctxRef.current.lineWidth = 8;
+			ctxRef.current.strokeStyle = 'black';
+			ctxRef.current.lineCap = 'round';
 		}
 
 		init?.(canvas);
@@ -116,28 +146,7 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 
 	useEffect(() => {
 		const handleResize = () => {
-			if (!canvasRef.current) return;
-
-			const canvas = canvasRef.current;
-			const ctx = canvas.getContext('2d');
-			if (!ctx) return;
-
-			const oldImage = canvas.toDataURL();
-			const oldWidth = canvas.width;
-			const oldHeight = canvas.height;
-
-			canvas.width = window.innerWidth;
-			canvas.height = window.innerHeight;
-
-			ctx.fillStyle = 'white';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-			const img = new Image();
-			img.src = oldImage;
-			img.onload = () => {
-				ctx.drawImage(img, 0, 0, oldWidth, oldHeight);
-				init?.(canvas);
-			};
+			render();
 		};
 
 		window.addEventListener('resize', handleResize);
