@@ -1,4 +1,4 @@
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { lazy } from "react";
 import Home from "./Home/Home";
 
@@ -20,14 +20,15 @@ const routes = Object.entries(modules).map(([path, module]) => {
 
 function App() {
   return (
-    <HashRouter>
+    <BrowserRouter basename="/carthouse">
       <Routes>
         {routes.map(({ path, component: Component }) => (
           <Route key={path} path={path} element={<Component />} />
         ))}
         <Route path="/" element={<Home paths={routes.flatMap(route => route.path)} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   )
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import ScalingCanvas, { type ScalingCanvasRef, type Point } from "../components/ScalingCanvas";
+import { Link } from "react-router-dom";
 
 type Props = {
 	paths: string[];
@@ -115,10 +116,6 @@ const Home = ({ paths }: Props) => {
 		return colors[Math.floor(Math.random() * colors.length)];
 	}
 
-	const morphToHashpath = (path: string): string => {
-		return path.replace('/', '/#');
-	}
-
 	const init = (_: HTMLCanvasElement) => {
 		scalingCanvasRef.current?.addStroke(randomPositions);
 	}
@@ -145,10 +142,10 @@ const Home = ({ paths }: Props) => {
 			</ul>
 		</div>
 		{paths.map((path, i) => (
-			<a href={morphToHashpath(path)} key={i} className="home-element" style={{
+			<Link to={path} key={i} className="home-element" style={{
 				top: randomPositions[i + 2].y,
 				left: randomPositions[i + 2].x,
-			}}>{path}</a>
+			}}>{path}</Link>
 		))}
 	</div>)
 }
