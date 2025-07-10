@@ -3,6 +3,7 @@ import { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 type ScalingCanvasProps = {
 	init?: (canvasContext: HTMLCanvasElement) => void;
 	drawMode?: boolean;
+	getPoint?: (e: MouseEvent) => Point;
 }
 
 type ScalingCanvasRef = {
@@ -17,7 +18,7 @@ export type Point = {
 	color?: string,
 }
 
-const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, drawMode = true }, ref) => {
+const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, drawMode = true, getPoint }, ref) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const isDrawing = useRef<boolean>(false);
 	const strokes = useRef<Point[][]>([]);
@@ -56,18 +57,14 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 		for (const stroke of strokes.current) {
-			if (stroke.length === 0) {
-				continue;
-			}
-
-			ctx.beginPath();
-			ctx.moveTo(stroke[0].x, stroke[0].y);
-
-			for (let i = 0; i < stroke.length; i++) {
+			for (let i = 1; i < stroke.length; i++) {
+				ctx.beginPath();
+				ctx.moveTo(stroke[i - 1].x, stroke[i - 1].y);
+				ctx.strokeStyle = stroke[i].color!;
+				ctx.lineWidth = stroke[i].width!;
 				ctx.lineTo(stroke[i].x, stroke[i].y);
+				ctx.stroke();
 			}
-
-			ctx.stroke();
 		}
 	}
 
@@ -84,12 +81,12 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 		const onMouseMove = (e: MouseEvent) => {
 			if (!isDrawing.current) return;
 
-			addPoint({ x: e.clientX, y: e.clientY });
+			addPoint(getPoint?.(e) || { x: e.clientX, y: e.clientY });
 		}
 
 		const onMouseUp = (e: MouseEvent) => {
 			isDrawing.current = false;
-			addPoint({ x: e.clientX, y: e.clientY });
+			addPoint(getPoint?.(e) || { x: e.clientX, y: e.clientY });
 		};
 
 		const onMouseDown = () => {
