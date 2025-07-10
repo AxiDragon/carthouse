@@ -7,14 +7,17 @@ type ScalingCanvasProps = {
 
 type ScalingCanvasRef = {
 	getCanvas: () => Canvas;
+	isDrawing: () => boolean;
 }
 
 const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init }, ref) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const fabricCanvasRef = useRef<Canvas | null>(null);
+	const isDrawing = useRef<boolean>(false);
 
 	useImperativeHandle(ref, () => ({
-		getCanvas: () => fabricCanvasRef.current as Canvas
+		getCanvas: () => fabricCanvasRef.current as Canvas,
+		isDrawing: () => isDrawing.current,
 	}), []);
 
 	useEffect(() => {
@@ -33,9 +36,20 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init }
 			init(fabricCanvasRef.current);
 		}
 
+		const onMouseUp = () => isDrawing.current = false;
+
+
+		const onMouseDown = () => isDrawing.current = true;
+
+
+		fabricCanvasRef.current.on('mouse:up', onMouseUp);
+		fabricCanvasRef.current.on('mouse:down', onMouseDown);
+
 		fabricCanvasRef.current.renderAll();
 
 		return () => {
+			fabricCanvasRef.current?.off('mouse:up', onMouseUp);
+			fabricCanvasRef.current?.off('mouse:down', onMouseDown);
 			fabricCanvasRef.current?.dispose();
 			fabricCanvasRef.current = null;
 		};
