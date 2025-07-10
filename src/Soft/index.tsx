@@ -4,7 +4,7 @@ import ScalingCanvas, { type ScalingCanvasRef } from "../components/ScalingCanva
 function Soft() {
 	const scalingCanvas = useRef<ScalingCanvasRef>(null);
 
-	const onMouseDown = (e: MouseEvent) => {
+	const onMouseDown = () => {
 		const canvas = scalingCanvas.current!.getCanvas();
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;

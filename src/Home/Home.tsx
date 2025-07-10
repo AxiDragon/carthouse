@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ScalingCanvas from "../components/ScalingCanvas";
 
 type Props = {
 	paths: string[];
@@ -53,7 +54,24 @@ const Home = ({ paths }: Props) => {
 		return path.replace('/', '/#');
 	}
 
+	const init = (canvas: HTMLCanvasElement) => {
+		const ctx = canvas.getContext('2d');
+		console.log('yuh');
+		if (!ctx) return;
+
+		ctx.moveTo(randomPositions[0].x, randomPositions[0].y);
+		ctx.strokeStyle = '#bbb';
+		ctx.lineWidth = 1;
+		console.log('drawing points', randomPositions.length);
+		for (let i = 1; i < randomPositions.length; i++) {
+			ctx.lineTo(randomPositions[i].x, randomPositions[i].y);
+			ctx.stroke();
+			ctx.strokeRect(randomPositions[i].x - 10, randomPositions[i].y - 10, 20, 20);
+		}
+	}
+
 	return (<div>
+		<ScalingCanvas init={init} />
 		<h1 className="home-element" style={{
 			top: randomPositions[0].y,
 			left: randomPositions[0].x,
