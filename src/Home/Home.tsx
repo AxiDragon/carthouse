@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import ScalingCanvas from "../components/ScalingCanvas";
+import { useEffect, useRef, useState } from "react";
+import ScalingCanvas, { type ScalingCanvasRef, type Point } from "../components/ScalingCanvas";
 
 type Props = {
 	paths: string[];
@@ -7,15 +7,74 @@ type Props = {
 
 const xPadding = 100;
 const yPadding = 100;
+const speed = 0.2 + Math.random() * 2.3;
+const circleSpinSpeed = 2 + Math.random() * 28;
+const circleDiameter = 50 + Math.random() * 450;
+const chance = 1 + Math.random() * 4;
 
 const Home = ({ paths }: Props) => {
-	const [randomPositions, setRandomPositions] = useState<{ x: number, y: number }[]>(generateRandomPositions());
+	const scalingCanvasRef = useRef<ScalingCanvasRef>(null);
+	const [randomPositions, setRandomPositions] = useState<Point[]>(generateRandomPositions());
+	const animationFrameRef = useRef<number | null>(null);
+	const currentPosition = useRef<{ x: number, y: number }>(randomPositions[0]);
+	const mousePosition = useRef<{ x: number, y: number } | null>(null)
+	const followerColor = useRef<string>(getRandomColor());
 
-	function generateRandomPositions(): { x: number, y: number }[] {
+	useEffect(() => {
+		if (!scalingCanvasRef.current) return;
+
+		const tick = (now: number) => {
+			if (mousePosition.current) {
+				const target = {
+					x: mousePosition.current.x + Math.sin(now / 1000 * circleSpinSpeed) * circleDiameter,
+					y: mousePosition.current.y + Math.cos(now / 1000 * circleSpinSpeed) * circleDiameter,
+				}
+
+				const delta = {
+					x: currentPosition.current.x - target.x,
+					y: currentPosition.current.y - target.y,
+				}
+
+				currentPosition.current = {
+					x: currentPosition.current.x - (delta.x / 100 * speed),
+					y: currentPosition.current.y - (delta.y / 100 * speed),
+				}
+
+				if (Math.random() < chance / 1000) {
+					followerColor.current = getRandomColor();
+				}
+
+				scalingCanvasRef.current!.addPoint({
+					...currentPosition.current,
+					color: followerColor.current,
+					width: 3 + 2 * Math.random()
+				})
+			}
+
+			animationFrameRef.current = requestAnimationFrame(tick);
+		}
+
+		const onMouseMove = (e: MouseEvent) => {
+			mousePosition.current = { x: e.clientX, y: e.clientY };
+		}
+
+		animationFrameRef.current = requestAnimationFrame(tick);
+		window.addEventListener('mousemove', onMouseMove);
+
+		return () => {
+			if (animationFrameRef.current) {
+				cancelAnimationFrame(animationFrameRef.current);
+			}
+
+			window.removeEventListener('mousemove', onMouseMove);
+		}
+	}, []);
+
+	function generateRandomPositions(): Point[] {
 		const w = window.innerWidth - xPadding * 2;
 		const h = window.innerHeight - yPadding * 2;
 
-		const res: { x: number, y: number }[] = [];
+		const res: Point[] = [];
 
 		const checkProximity = (newPos: { x: number, y: number }): boolean => {
 			for (const pos of res) {
@@ -40,7 +99,7 @@ const Home = ({ paths }: Props) => {
 				pos = { x: xPadding + w * Math.random(), y: yPadding + h * Math.random() };
 			}
 
-			res.push(pos)
+			res.push({ ...pos, color: '#bbb', width: 1 })
 		}
 
 		return res;
@@ -50,28 +109,26 @@ const Home = ({ paths }: Props) => {
 		setRandomPositions(generateRandomPositions());
 	}, [paths]);
 
+	function getRandomColor() {
+		const colors = [
+			'blue',
+			'black',
+			'red',
+		]
+
+		return colors[Math.floor(Math.random() * colors.length)];
+	}
+
 	const morphToHashpath = (path: string): string => {
 		return path.replace('/', '/#');
 	}
 
-	const init = (canvas: HTMLCanvasElement) => {
-		const ctx = canvas.getContext('2d');
-		console.log('yuh');
-		if (!ctx) return;
-
-		ctx.moveTo(randomPositions[0].x, randomPositions[0].y);
-		ctx.strokeStyle = '#bbb';
-		ctx.lineWidth = 1;
-		console.log('drawing points', randomPositions.length);
-		for (let i = 1; i < randomPositions.length; i++) {
-			ctx.lineTo(randomPositions[i].x, randomPositions[i].y);
-			ctx.stroke();
-			ctx.strokeRect(randomPositions[i].x - 10, randomPositions[i].y - 10, 20, 20);
-		}
+	const init = (_: HTMLCanvasElement) => {
+		scalingCanvasRef.current?.addStroke(randomPositions);
 	}
 
 	return (<div>
-		<ScalingCanvas init={init} />
+		<ScalingCanvas init={init} ref={scalingCanvasRef} drawMode={false} />
 		<h1 className="home-element" style={{
 			top: randomPositions[0].y,
 			left: randomPositions[0].x,
