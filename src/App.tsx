@@ -1,5 +1,6 @@
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { lazy } from "react";
+import Home from "./Home/Home";
 
 const modules = import.meta.glob("./*/index.tsx", { eager: true });
 
@@ -17,8 +18,6 @@ const routes = Object.entries(modules).map(([path, module]) => {
   };
 });
 
-routes.unshift({ path: '/', component: routes[0]?.component });
-
 function App() {
   return (
     <HashRouter>
@@ -26,6 +25,7 @@ function App() {
         {routes.map(({ path, component: Component }) => (
           <Route key={path} path={path} element={<Component />} />
         ))}
+        <Route path="/" element={<Home paths={routes.flatMap(route => route.path)} />} />
       </Routes>
     </HashRouter>
   )
