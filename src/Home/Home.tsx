@@ -5,7 +5,7 @@ type Props = {
 }
 
 const xPadding = 100;
-const yPadding = 25;
+const yPadding = 100;
 
 const Home = ({ paths }: Props) => {
 	const [randomPositions, setRandomPositions] = useState<{ x: number, y: number }[]>(generateRandomPositions());
@@ -31,7 +31,7 @@ const Home = ({ paths }: Props) => {
 			return true;
 		}
 
-		for (let index = 0; index < paths.length; index++) {
+		for (let index = 0; index < paths.length + 2; index++) {
 			let tries = 10;
 			let pos = { x: xPadding + w * Math.random(), y: yPadding + h * Math.random() };
 
@@ -54,14 +54,29 @@ const Home = ({ paths }: Props) => {
 	}
 
 	return (<div>
-		<h1 className="home-path" style={{
+		<h1 className="home-element" style={{
 			top: randomPositions[0].y,
 			left: randomPositions[0].x,
+			fontSize: '4rem'
 		}}>cArthouse*</h1>
+		<div className="home-element credits" style={{
+			top: randomPositions[1].y,
+			left: randomPositions[1].x,
+		}}>
+			<h2>inspiration</h2>
+			<ul>
+				<li>
+					<a href="http://perfectionkills.com/exploring-canvas-drawing-techniques/" target="_blank">kangax</a>
+				</li>
+				<li>
+					<a href="https://www.wickedartsassignments.com/" target="_blank">wicked arts assignments</a>
+				</li>
+			</ul>
+		</div>
 		{paths.map((path, i) => (
-			<a href={morphToHashpath(path)} key={i} className="home-path" style={{
-				top: randomPositions[i].y,
-				left: randomPositions[i].x,
+			<a href={morphToHashpath(path)} key={i} className="home-element" style={{
+				top: randomPositions[i + 2].y,
+				left: randomPositions[i + 2].x,
 			}}>{path}</a>
 		))}
 	</div>)

@@ -12,8 +12,13 @@ canvas {
   image-rendering: crisp-edges;
 }
 
-.home-path {
+.home-element {
   position: fixed;
+  word-break: break-all;
+
+  * {
+    word-break: break-all;
+  }
 }
 
 .header-container {
@@ -21,4 +26,10 @@ canvas {
   position: fixed;
   width: 100%;
   justify-content: center;
+}
+
+.credits {
+  * {
+    margin: 0;
+  }
 }
