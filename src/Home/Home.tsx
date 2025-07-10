@@ -14,9 +14,9 @@ const chance = 1 + Math.random() * 4;
 
 const Home = ({ paths }: Props) => {
 	const scalingCanvasRef = useRef<ScalingCanvasRef>(null);
-	const [randomPositions, setRandomPositions] = useState<Point[]>(generateRandomPositions());
+	const [randomPositions, _] = useState<Point[]>(generateRandomPositions());
 	const animationFrameRef = useRef<number | null>(null);
-	const currentPosition = useRef<{ x: number, y: number }>(randomPositions[0]);
+	const currentPosition = useRef<{ x: number, y: number }>({ x: window.innerWidth * Math.random(), y: window.innerHeight * Math.random() });
 	const mousePosition = useRef<{ x: number, y: number } | null>(null)
 	const followerColor = useRef<string>(getRandomColor());
 
@@ -104,10 +104,6 @@ const Home = ({ paths }: Props) => {
 
 		return res;
 	}
-
-	useEffect(() => {
-		setRandomPositions(generateRandomPositions());
-	}, [paths]);
 
 	function getRandomColor() {
 		const colors = [
