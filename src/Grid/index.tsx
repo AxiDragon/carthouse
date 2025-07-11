@@ -6,8 +6,8 @@ function Grid() {
 	const previousPoint = useRef<Point | null>(null);
 
 	const getPoint = (e: MouseEvent) => {
-		const x = Math.floor(e.clientX / cellSize) * cellSize;
-		const y = Math.floor(e.clientY / cellSize) * cellSize;
+		const x = Math.floor((e.clientX + cellSize / 2) / cellSize) * cellSize;
+		const y = Math.floor((e.clientY + cellSize / 2) / cellSize) * cellSize;
 
 		if (previousPoint.current && previousPoint.current.x === x && previousPoint.current.y === y) {
 			console.log('same point, skipping');
