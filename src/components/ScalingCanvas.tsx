@@ -11,6 +11,7 @@ type ScalingCanvasRef = {
 	isDrawing: () => boolean;
 	addStroke: (points: Point[]) => void;
 	addPoint: (point: Point) => void;
+	getStrokes: () => Point[][];
 }
 
 export type Point = {
@@ -29,6 +30,7 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 	useImperativeHandle(ref, () => ({
 		getCanvas: () => canvasRef.current!,
 		isDrawing: () => isDrawing.current,
+		getStrokes: () => strokes.current,
 		addStroke,
 		addPoint
 	}), []);
