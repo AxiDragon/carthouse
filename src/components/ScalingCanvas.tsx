@@ -3,7 +3,7 @@ import { useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 type ScalingCanvasProps = {
 	init?: (canvasContext: HTMLCanvasElement) => void;
 	drawMode?: boolean;
-	getPoint?: (e: MouseEvent) => Point;
+	getPoint?: (e: MouseEvent) => Point | null;
 }
 
 type ScalingCanvasRef = {
@@ -105,14 +105,28 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 		const onMouseMove = (e: MouseEvent) => {
 			if (!isDrawing.current) return;
 
-			addPoint(getPoint?.(e) || { x: e.clientX, y: e.clientY });
+			if (getPoint) {
+				const point = getPoint(e);
+				if (point) {
+					addPoint(point);
+				}
+			} else {
+				addPoint({ x: e.clientX, y: e.clientY });
+			}
 		}
 
 		const onMouseUp = (e: MouseEvent) => {
 			isDrawing.current = false;
 
 			if (drawMode) {
-				addPoint(getPoint?.(e) || { x: e.clientX, y: e.clientY });
+				if (getPoint) {
+					const point = getPoint(e);
+					if (point) {
+						addPoint(point);
+					}
+				} else {
+					addPoint({ x: e.clientX, y: e.clientY });
+				}
 			}
 		};
 
