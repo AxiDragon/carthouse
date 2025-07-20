@@ -4,6 +4,7 @@ type ScalingCanvasProps = {
 	init?: (canvasContext: HTMLCanvasElement) => void;
 	drawMode?: boolean;
 	getPoint?: (e: MouseEvent) => Point | null;
+	wip?: boolean;
 }
 
 type ScalingCanvasRef = {
@@ -21,7 +22,7 @@ export type Point = {
 	color?: string,
 }
 
-const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, drawMode = true, getPoint }, ref) => {
+const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, drawMode = true, getPoint, wip = false }, ref) => {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const ctxRef = useRef<CanvasRenderingContext2D>(null!);
 	const isDrawing = useRef<boolean>(false);
@@ -170,7 +171,10 @@ const ScalingCanvas = forwardRef<ScalingCanvasRef, ScalingCanvasProps>(({ init, 
 	}, []);
 
 	return (
-		<canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} />
+		<>
+			{wip && <div className="wip">work in progress</div>}
+			<canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} />
+		</>
 	)
 });
 

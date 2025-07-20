@@ -82,7 +82,7 @@ function Grid() {
 	}
 
 	return (
-		<ScalingCanvas getPoint={getPoint} ref={scalingCanvas} init={init} />
+		<ScalingCanvas getPoint={getPoint} ref={scalingCanvas} init={init} wip />
 	)
 }
 

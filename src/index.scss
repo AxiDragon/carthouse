@@ -12,6 +12,14 @@ canvas {
   image-rendering: crisp-edges;
 }
 
+.wip {
+  position: fixed;
+  top: .5rem;
+  left: .5rem;
+  font-size: .8rem;
+  pointer-events: 0;
+}
+
 .home-element {
   position: fixed;
   word-break: break-all;
